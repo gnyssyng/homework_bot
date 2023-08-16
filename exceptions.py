@@ -1,29 +1,11 @@
-class APIIsNotAvaliable(Exception):
-    """Возникает, если API недоступен."""
-
-    pass
-
-
 class IncorrectResponse(Exception):
     """Возникает при неверном  ответе API."""
 
     pass
 
 
-class PracticumTokenErorr(Exception):
-    """Возниает при отсутсвии токена практикума."""
-
-    pass
-
-
-class TelegramBotTokenError(Exception):
-    """Возниает при отутствии токена телеграм-бота."""
-
-    pass
-
-
-class InvalidChatId(Exception):
-    """Возниает при неверном chat_id."""
+class MissingToken(Exception):
+    """Возникает при отсутсвии одного из токенов."""
 
     pass
 
@@ -60,5 +42,17 @@ class StatusIsNotInHomework(Exception):
 
 class IncorrectStatusCode(Exception):
     """Возникает при неверном статусе ответа API."""
+
+    pass
+
+
+class MissingKey(Exception):
+    """Возникает при отсуствии одного из ключей словаря."""
+
+    pass
+
+
+class ResponseHaveNoData(Exception):
+    """Возникает при отсуствии данных в словаре."""
 
     pass
