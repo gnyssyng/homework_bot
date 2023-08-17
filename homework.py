@@ -103,6 +103,7 @@ def get_api_answer(timestamp):
         pass
     if response.status_code != HTTPStatus.OK:
         raise exceptions.IncorrectStatusCode('Неверный код ответа API.')
+    logger.debug('Получен ответ от API.')
     return response.json()
 
 
@@ -160,9 +161,11 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
-            timestamp = response['current_date']
+            if not response['current_date']:
+                timestamp = response['current_date']
             response = check_response(response)
             last_hw = -len(response)
+            print(f'AAAAAAAAAAAAAAAAAAAAAA{last_hw}')
             current_report['name'] = response[last_hw]['homework_name']
             current_report['messages'] = parse_status(response[last_hw])
             logger.debug('Отчёт о домашней работе записан в current_report.')
