@@ -3,14 +3,13 @@ import os
 import sys
 import time
 from http import HTTPStatus
+from os.path import abspath
 
 import requests
 import telegram
-
 import exceptions
 
 from dotenv import load_dotenv
-from os.path import abspath
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -165,7 +164,6 @@ def main():
                 timestamp = response['current_date']
             response = check_response(response)
             last_hw = -len(response)
-            print(f'AAAAAAAAAAAAAAAAAAAAAA{last_hw}')
             current_report['name'] = response[last_hw]['homework_name']
             current_report['messages'] = parse_status(response[last_hw])
             logger.debug('Отчёт о домашней работе записан в current_report.')
