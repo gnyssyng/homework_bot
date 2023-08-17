@@ -76,30 +76,23 @@ def send_message(bot, message):
 
 def get_api_answer(timestamp):
     """Функция получает ответ API."""
-    playload = {'from_date': timestamp}
     requset_data = {
-        'URL': ENDPOINT,
+        'url': ENDPOINT,
         'headers': HEADERS,
-        'params': playload
+        'params': {'from_date': timestamp},
     }
     logger.debug(
         'Начался запрос к API.\n'
-        'Адрес запроса: {URL}\n'
+        'Адрес запроса: {url}\n'
         'Заголовки: {headers}\n'
-        'Параметры: {params}\n'.format(
-            URL=requset_data['URL'],
-            headers=requset_data['headers'],
-            params=requset_data['params']
-        )
+        'Параметры: {params}\n'.format(**requset_data)
     )
     try:
-        response = requests.get(
-            requset_data['URL'],
-            headers=requset_data['headers'],
-            params=requset_data['params']
+        response = requests.get(**requset_data)
+    except requests.RequestException('Не удалось совершить запрос к API.'):
+        raise exceptions.IncorrectResponse(
+            'Не удалось совершить запрос к API.'
         )
-    except requests.RequestException('Не удалось совершить запрос к API'):
-        pass
     if response.status_code != HTTPStatus.OK:
         raise exceptions.IncorrectStatusCode('Неверный код ответа API.')
     logger.debug('Получен ответ от API.')
@@ -148,40 +141,34 @@ def main():
     check_tokens()
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = 0
-    current_report = {
-        'name': None,
-        'messages': None,
-    }
-    prev_report = {
-        'name': None,
-        'messages': None,
-    }
-
+    current_report = {}
+    prev_report = {}
     while True:
         try:
             response = get_api_answer(timestamp)
-            if not response['current_date']:
-                timestamp = response['current_date']
-            response = check_response(response)
-            last_hw = -len(response)
-            current_report['name'] = response[last_hw]['homework_name']
-            current_report['messages'] = parse_status(response[last_hw])
-            logger.debug('Отчёт о домашней работе записан в current_report.')
-            if len(response) > 0:
+            timestamp = response.get('current_date', timestamp)
+            homeworks = check_response(response)
+            logger.error('Отсутствует домашняя работа.')
+            if homeworks:
+                current_report['name'] = homeworks[0]['homework_name']
+                current_report['messages'] = parse_status(homeworks[0])
+                logger.debug(
+                    'Отчёт о домашней работе записан в current_report.'
+                )
                 if current_report != prev_report:
-                    try:
-                        send_message(bot, current_report['messages'])
-                    except telegram.error.TelegramError as error:
-                        logger.error(
-                            f'Сбой при попытке отправки сообщения {error}'
-                        )
+                    send_message(bot, current_report['messages'])
                     prev_report = current_report.copy()
                     logger.debug(
                         'Отчёт о домашней работе записан в prev_report.'
                     )
             else:
-                logger.error('Пустой ответ API.')
-                raise exceptions.ResponseHaveNoData('Пустой словарь ответа')
+                logger.info('Новые статусы отсутствуют.')
+        except telegram.error.TelegramError as error:
+            logger.error(
+                f'Сбой при попытке отправки сообщения {error}'
+            )
+        except exceptions.HomeworkIsNotInResponse:
+            logger.error('Отсутсвует домашняя работа.')
         except Exception as error:
             logger.error(f'Сбой в работе программы {error}')
             current_report['name'] = error
