@@ -148,7 +148,6 @@ def main():
             response = get_api_answer(timestamp)
             timestamp = response.get('current_date', timestamp)
             homeworks = check_response(response)
-            logger.error('Отсутствует домашняя работа.')
             if homeworks:
                 current_report['name'] = homeworks[0]['homework_name']
                 current_report['messages'] = parse_status(homeworks[0])
